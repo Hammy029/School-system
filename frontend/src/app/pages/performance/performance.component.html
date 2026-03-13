@@ -1,0 +1,172 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-800'">Performance & Marks</h2>
+    <div class="flex gap-2">
+      <button (click)="switchToView()" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+        [class]="mode === 'view' ? 'bg-blue-600 text-white' : (darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100')">
+        View Records
+      </button>
+      <button (click)="switchToBulk()" class="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+        [class]="mode === 'bulk' ? 'bg-blue-600 text-white' : (darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100')">
+        Bulk Entry
+      </button>
+    </div>
+  </div>
+
+  @if (success) {
+    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ success }}</div>
+  }
+  @if (error) {
+    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="rounded-xl p-4 mb-4" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div>
+        <label class="block text-xs font-medium mb-1" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Class</label>
+        <select [(ngModel)]="filters.classId" (ngModelChange)="onClassChange()"
+          class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          <option value="">Select class</option>
+          @for (cls of classes; track cls._id) {
+            <option [value]="cls._id">{{ cls.name }} {{ cls.section ? '(' + cls.section + ')' : '' }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Subject</label>
+        <select [(ngModel)]="filters.subjectId"
+          class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          <option value="">Select subject</option>
+          @for (subj of subjects; track subj._id) {
+            <option [value]="subj._id">{{ subj.name }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Year</label>
+        <input [(ngModel)]="filters.academicYear"
+          class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Term</label>
+        <select [(ngModel)]="filters.term"
+          class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          @for (t of terms; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Exam Type</label>
+        <select [(ngModel)]="filters.examType"
+          class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          @for (e of examTypes; track e) {
+            <option [value]="e">{{ e }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (mode === 'view') {
+      <button (click)="loadPerformances()" class="mt-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        Load Records
+      </button>
+    }
+  </div>
+
+  <!-- Bulk Entry Mode -->
+  @if (mode === 'bulk') {
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (bulkScores.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">
+          Select a class to load students for mark entry.
+        </div>
+      } @else {
+        <table class="w-full">
+          <thead>
+            <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider w-12">#</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Adm No.</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Student Name</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider w-32">Score (0-100)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of bulkScores; track entry.studentId; let i = $index) {
+              <tr class="border-t" [class]="darkMode ? 'border-slate-700' : 'border-gray-100'">
+                <td class="px-4 py-2 text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">{{ i + 1 }}</td>
+                <td class="px-4 py-2 text-sm font-mono" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ entry.admNo }}</td>
+                <td class="px-4 py-2 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ entry.studentName }}</td>
+                <td class="px-4 py-2">
+                  <input [(ngModel)]="entry.score" type="number" min="0" max="100" placeholder="--"
+                    class="w-24 px-3 py-1.5 rounded-lg border text-sm outline-none text-center"
+                    [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="p-4" [class]="darkMode ? 'border-t border-slate-700' : 'border-t border-gray-100'">
+          <button (click)="saveBulkScores()" [disabled]="saving"
+            class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {{ saving ? 'Saving...' : 'Save All Scores' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- View Mode -->
+  @if (mode === 'view') {
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (loading) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Loading...</div>
+      } @else if (performances.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No records found. Use filters and click Load Records.</div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Student</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Subject</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Score</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Grade</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Remark</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Type</th>
+                <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of performances; track p._id) {
+                <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                  <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">
+                    {{ p.studentId?.firstName }} {{ p.studentId?.lastName }}
+                  </td>
+                  <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.subjectId?.name }}</td>
+                  <td class="px-4 py-3 text-sm font-bold" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ p.score }}</td>
+                  <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 rounded text-xs font-bold"
+                      [class]="p.score >= 70 ? 'bg-green-100 text-green-700' : p.score >= 50 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'">
+                      {{ p.grade }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.remark }}</td>
+                  <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.examType }}</td>
+                  <td class="px-4 py-3 text-right">
+                    <button (click)="deletePerformance(p._id)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -25,14 +25,14 @@ export class ClassesComponent implements OnInit {
   constructor(private classService: ClassService, private themeService: ThemeService) {}
 
   ngOnInit() {
-    this.themeService.darkMode$.subscribe(d => (this.darkMode = d));
+    this.themeService.darkMode$.subscribe((d: boolean) => (this.darkMode = d));
     this.loadClasses();
   }
 
   loadClasses() {
     this.loading = true;
     this.classService.getAll().subscribe({
-      next: data => { this.classes = data; this.loading = false; },
+      next: (data: any) => { this.classes = data; this.loading = false; },
       error: () => { this.loading = false; },
     });
   }

@@ -43,7 +43,7 @@ export class UpdatePasswordComponent implements OnInit {
         next: () => {
           this.submitting = false;
           localStorage.removeItem('requirePasswordChange');
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/app/dashboard']);
         },
         error: (err: any) => {
           this.submitting = false;

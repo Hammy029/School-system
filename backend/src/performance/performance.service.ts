@@ -28,8 +28,8 @@ export class PerformanceService {
   async create(dto: CreatePerformanceDto): Promise<PerformanceDocument> {
     const { grade, remark, points } = await this.applyGrade(dto.score);
     const existing = await this.performanceModel.findOne({
-      studentId: dto.studentId,
-      subjectId: dto.subjectId,
+      studentId: dto.studentId as any,
+      subjectId: dto.subjectId as any,
       academicYear: dto.academicYear,
       term: dto.term,
       examType: dto.examType,
@@ -41,7 +41,7 @@ export class PerformanceService {
       existing.points = points;
       return existing.save();
     }
-    return this.performanceModel.create({ ...dto, grade, remark, points });
+    return this.performanceModel.create({ ...dto, grade, remark, points } as any);
   }
 
   async bulkCreate(dto: BulkPerformanceDto): Promise<{ created: number; updated: number }> {
@@ -50,9 +50,9 @@ export class PerformanceService {
     for (const entry of dto.scores) {
       const { grade, remark, points } = await this.applyGrade(entry.score);
       const existing = await this.performanceModel.findOne({
-        studentId: entry.studentId,
-        subjectId: dto.subjectId,
-        classId: dto.classId,
+        studentId: entry.studentId as any,
+        subjectId: dto.subjectId as any,
+        classId: dto.classId as any,
         academicYear: dto.academicYear,
         term: dto.term,
         examType: dto.examType,
@@ -76,7 +76,7 @@ export class PerformanceService {
           grade,
           remark,
           points,
-        });
+        } as any);
         created++;
       }
     }
@@ -142,7 +142,7 @@ export class PerformanceService {
     if (!student) throw new NotFoundException('Student not found');
 
     const performances = await this.performanceModel
-      .find({ studentId, academicYear, term })
+      .find({ studentId: studentId as any, academicYear, term })
       .populate('subjectId', 'name code')
       .sort({ examType: 1 })
       .exec();
@@ -203,11 +203,11 @@ export class PerformanceService {
     const classDoc = await this.classModel.findById(classId).exec();
     if (!classDoc) throw new NotFoundException('Class not found');
 
-    const students = await this.studentModel.find({ classId, isActive: true }).sort({ lastName: 1, firstName: 1 }).exec();
-    const subjects = await this.subjectModel.find({ classId }).exec();
+    const students = await this.studentModel.find({ classId: classId as any, isActive: true }).sort({ lastName: 1, firstName: 1 }).exec();
+    const subjects = await this.subjectModel.find({ classId: classId as any }).exec();
 
     const performances = await this.performanceModel
-      .find({ classId, academicYear, term })
+      .find({ classId: classId as any, academicYear, term })
       .populate('studentId', 'firstName lastName admissionNumber')
       .populate('subjectId', 'name code')
       .exec();
@@ -296,12 +296,12 @@ export class PerformanceService {
   }
 
   private async getClassRanking(classId: string, academicYear: string, term: string) {
-    const students = await this.studentModel.find({ classId, isActive: true }).exec();
+    const students = await this.studentModel.find({ classId: classId as any, isActive: true }).exec();
     const ranking: { studentId: string; average: number }[] = [];
 
     for (const student of students) {
       const sid = student._id.toString();
-      const perfs = await this.performanceModel.find({ studentId: sid, academicYear, term }).exec();
+      const perfs = await this.performanceModel.find({ studentId: sid as any, academicYear, term }).exec();
       if (perfs.length > 0) {
         // Group by subject and get subject-level averages
         const subjectScores = new Map<string, number[]>();

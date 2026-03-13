@@ -18,7 +18,7 @@ export class ClassesService {
     if (existing) {
       throw new ConflictException('Class with this name, section, and academic year already exists');
     }
-    return this.classModel.create(dto);
+    return this.classModel.create(dto as any);
   }
 
   async findAll(academicYear?: string): Promise<ClassDocument[]> {

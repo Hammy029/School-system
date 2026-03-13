@@ -32,15 +32,15 @@ export class SubjectsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.themeService.darkMode$.subscribe(d => (this.darkMode = d));
-    this.classService.getAll().subscribe({ next: c => (this.classes = c) });
+    this.themeService.darkMode$.subscribe((d: boolean) => (this.darkMode = d));
+    this.classService.getAll().subscribe({ next: (c: any) => (this.classes = c) });
     this.loadSubjects();
   }
 
   loadSubjects() {
     this.loading = true;
     this.subjectService.getAll(this.filterClassId || undefined).subscribe({
-      next: data => { this.subjects = data; this.loading = false; },
+      next: (data: any) => { this.subjects = data; this.loading = false; },
       error: () => { this.loading = false; },
     });
   }

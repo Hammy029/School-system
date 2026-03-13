@@ -33,7 +33,7 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit() {
     this.user = this.authService.getUser();
-    this.themeService.darkMode$.subscribe(isDark => (this.darkMode = isDark));
+    this.themeService.darkMode$.subscribe((isDark: boolean) => (this.darkMode = isDark));
   }
 
   toggleSidebar() {

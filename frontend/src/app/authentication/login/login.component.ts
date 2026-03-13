@@ -47,7 +47,7 @@ export class LoginComponent {
           return;
         }
 
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/app/dashboard']);
       },
       error: (err: any) => {
         this.loading = false;

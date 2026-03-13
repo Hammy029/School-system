@@ -14,7 +14,7 @@ export class SubjectsService {
     if (existing) {
       throw new ConflictException('Subject with this code already exists');
     }
-    return this.subjectModel.create(dto);
+    return this.subjectModel.create(dto as any);
   }
 
   async findAll(classId?: string): Promise<SubjectDocument[]> {

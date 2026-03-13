@@ -36,15 +36,15 @@ export class StudentsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.themeService.darkMode$.subscribe(d => (this.darkMode = d));
-    this.classService.getAll().subscribe({ next: c => (this.classes = c) });
+    this.themeService.darkMode$.subscribe((d: boolean) => (this.darkMode = d));
+    this.classService.getAll().subscribe({ next: (c: any) => (this.classes = c) });
     this.loadStudents();
   }
 
   loadStudents() {
     this.loading = true;
     this.studentService.getAll(this.filterClassId || undefined, this.searchTerm || undefined).subscribe({
-      next: data => { this.students = data; this.loading = false; },
+      next: (data: any) => { this.students = data; this.loading = false; },
       error: () => { this.loading = false; },
     });
   }

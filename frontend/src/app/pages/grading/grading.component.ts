@@ -42,14 +42,14 @@ export class GradingComponent implements OnInit {
   constructor(private gradingService: GradingService, private themeService: ThemeService) {}
 
   ngOnInit() {
-    this.themeService.darkMode$.subscribe(d => (this.darkMode = d));
+    this.themeService.darkMode$.subscribe((d: boolean) => (this.darkMode = d));
     this.loadScales();
   }
 
   loadScales() {
     this.loading = true;
     this.gradingService.getAll().subscribe({
-      next: data => { this.scales = data; this.loading = false; },
+      next: (data: any) => { this.scales = data; this.loading = false; },
       error: () => { this.loading = false; },
     });
   }

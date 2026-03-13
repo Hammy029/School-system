@@ -5,7 +5,14 @@ import { RegisterComponent } from './authentication/register/register.component'
 import { ForgotPasswordComponent } from './authentication/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
 import { UpdatePasswordComponent } from './authentication/update-password/update-password.component';
+import { LayoutComponent } from './pages/layout/layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { ClassesComponent } from './pages/classes/classes.component';
+import { SubjectsComponent } from './pages/subjects/subjects.component';
+import { StudentsComponent } from './pages/students/students.component';
+import { GradingComponent } from './pages/grading/grading.component';
+import { PerformanceComponent } from './pages/performance/performance.component';
+import { ReportsComponent } from './pages/reports/reports.component';
 
 export const routes: Routes = [
   // Public routes
@@ -16,13 +23,26 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'update-password', component: UpdatePasswordComponent },
 
-  // Protected routes
+  // Protected routes with layout
   {
-    path: 'dashboard',
-    component: DashboardComponent,
+    path: 'app',
+    component: LayoutComponent,
     canActivate: [AuthGuard],
     data: { roles: ['user', 'teacher', 'admin', 'super_admin'] },
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'classes', component: ClassesComponent },
+      { path: 'subjects', component: SubjectsComponent },
+      { path: 'students', component: StudentsComponent },
+      { path: 'grading', component: GradingComponent },
+      { path: 'performance', component: PerformanceComponent },
+      { path: 'reports', component: ReportsComponent },
+    ],
   },
+
+  // Legacy redirect
+  { path: 'dashboard', redirectTo: '/app/dashboard', pathMatch: 'full' },
 
   // Catch-all
   { path: '**', redirectTo: '/login' },

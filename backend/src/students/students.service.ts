@@ -14,7 +14,7 @@ export class StudentsService {
     if (existing) {
       throw new ConflictException('Student with this admission number already exists');
     }
-    return this.studentModel.create(dto);
+    return this.studentModel.create(dto as any);
   }
 
   async findAll(classId?: string, search?: string): Promise<StudentDocument[]> {
@@ -42,7 +42,7 @@ export class StudentsService {
   }
 
   async findByClass(classId: string): Promise<StudentDocument[]> {
-    return this.studentModel.find({ classId, isActive: true })
+    return this.studentModel.find({ classId: classId as any, isActive: true })
       .sort({ lastName: 1, firstName: 1 })
       .exec();
   }
