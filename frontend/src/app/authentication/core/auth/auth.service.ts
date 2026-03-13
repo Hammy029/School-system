@@ -6,6 +6,7 @@ import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 import { Role } from '../../../shared/models/roles.enum';
+import { OrgContextService } from '../../../shared/services/org-context.service';
 
 interface LoginResponse {
   user: any;
@@ -25,6 +26,7 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private router: Router,
+    private orgContext: OrgContextService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     if (isPlatformBrowser(this.platformId)) {
@@ -34,6 +36,10 @@ export class AuthService {
       const parsedUser = user ? JSON.parse(user) : null;
       const role = parsedUser?.role || this.getUserRole();
       this.currentUserRole.next(role);
+
+      if (parsedUser?.organizationId && parsedUser?.branchId) {
+        this.orgContext.setContext(parsedUser.organizationId, parsedUser.branchId);
+      }
     }
   }
 
@@ -95,6 +101,7 @@ export class AuthService {
 
     this.currentUserRole.next(null);
     this.authState.next(false);
+    this.orgContext.clearContext();
     this.router.navigate(['/login']);
   }
 
@@ -126,7 +133,8 @@ export class AuthService {
         email: decoded.email,
         role: decoded.role || Role.User,
         phone_no: existingUser?.phone_no || null,
-        schoolId: decoded.schoolId || existingUser?.schoolId || null,
+        organizationId: decoded.organizationId || existingUser?.organizationId || null,
+        branchId: decoded.branchId || existingUser?.branchId || null,
       };
       this.setUser(userInfo);
     }
@@ -138,6 +146,10 @@ export class AuthService {
     }
     this.currentUserRole.next(user?.role ?? null);
     this.authState.next(true);
+
+    if (user?.organizationId && user?.branchId) {
+      this.orgContext.setContext(user.organizationId, user.branchId);
+    }
   }
 
   getUser(): any {

@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsEnum,
+  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -30,6 +31,10 @@ export class RegisterDto {
   role?: Role;
 
   @IsOptional()
-  @IsString()
-  schoolId?: string;
+  @IsMongoId()
+  organizationId?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  branchId?: string;
 }

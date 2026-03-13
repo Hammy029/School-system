@@ -7,30 +7,47 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 
-@Controller('students')
+@Controller('organizations/:organizationId/branches/:branchId/students')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Post()
   @Roles(Role.Admin, Role.SuperAdmin, Role.Teacher)
-  create(@Body() dto: CreateStudentDto) {
-    return this.studentsService.create(dto);
+  create(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Body() dto: CreateStudentDto,
+  ) {
+    return this.studentsService.create(organizationId, branchId, dto);
   }
 
   @Get()
-  findAll(@Query('classId') classId?: string, @Query('search') search?: string) {
-    return this.studentsService.findAll(classId, search);
+  findAll(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Query('classId') classId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.studentsService.findAll(organizationId, branchId, classId, search);
   }
 
   @Get('count')
-  count(@Query('classId') classId?: string) {
-    return this.studentsService.count(classId);
+  count(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Query('classId') classId?: string,
+  ) {
+    return this.studentsService.count(organizationId, branchId, classId);
   }
 
   @Get('by-class/:classId')
-  findByClass(@Param('classId') classId: string) {
-    return this.studentsService.findByClass(classId);
+  findByClass(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Param('classId') classId: string,
+  ) {
+    return this.studentsService.findByClass(organizationId, branchId, classId);
   }
 
   @Get(':id')

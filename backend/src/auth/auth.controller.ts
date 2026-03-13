@@ -92,7 +92,7 @@ export class AuthController {
   @Roles(Role.Admin, Role.SuperAdmin)
   @Get('users')
   async getUsers(@Request() req: any) {
-    return this.authService.findAllUsers(req.user.schoolId);
+    return this.authService.findAllUsers(req.user.organizationId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -112,8 +112,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SuperAdmin)
   @Patch('users/:id/approve')
-  async approveUser(@Param('id') id: string, @Body('schoolId') schoolId?: string) {
-    return this.authService.approveUser(id, schoolId);
+  async approveUser(@Param('id') id: string, @Body('organizationId') organizationId?: string, @Body('branchId') branchId?: string) {
+    return this.authService.approveUser(id, organizationId, branchId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

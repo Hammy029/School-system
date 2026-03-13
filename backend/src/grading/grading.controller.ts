@@ -7,25 +7,35 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 
-@Controller('grading')
+@Controller('organizations/:organizationId/branches/:branchId/grading')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GradingController {
   constructor(private readonly gradingService: GradingService) {}
 
   @Post()
   @Roles(Role.Admin, Role.SuperAdmin)
-  create(@Body() dto: CreateGradingScaleDto) {
-    return this.gradingService.create(dto);
+  create(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Body() dto: CreateGradingScaleDto,
+  ) {
+    return this.gradingService.create(organizationId, branchId, dto);
   }
 
   @Get()
-  findAll() {
-    return this.gradingService.findAll();
+  findAll(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+  ) {
+    return this.gradingService.findAll(organizationId, branchId);
   }
 
   @Get('default')
-  findDefault() {
-    return this.gradingService.findDefault();
+  findDefault(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+  ) {
+    return this.gradingService.findDefault(organizationId, branchId);
   }
 
   @Get(':id')

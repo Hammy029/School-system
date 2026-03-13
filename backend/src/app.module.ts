@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { OrganizationModule } from './components/organization/organization.module';
+import { OrganizationBranchModule } from './components/organization-branch/organization-branch.module';
 import { ClassesModule } from './classes/classes.module';
 import { SubjectsModule } from './subjects/subjects.module';
 import { StudentsModule } from './students/students.module';
@@ -21,6 +23,8 @@ import { PerformanceModule } from './performance/performance.module';
       }),
     }),
     AuthModule,
+    OrganizationModule,
+    OrganizationBranchModule,
     ClassesModule,
     SubjectsModule,
     StudentsModule,

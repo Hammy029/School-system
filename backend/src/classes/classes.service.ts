@@ -9,42 +9,45 @@ import { UpdateClassDto } from './dto/update-class.dto';
 export class ClassesService {
   constructor(@InjectModel(Class.name) private classModel: Model<ClassDocument>) {}
 
-  async create(dto: CreateClassDto): Promise<ClassDocument> {
+  async create(organizationId: string, branchId: string, dto: CreateClassDto): Promise<ClassDocument> {
     const existing = await this.classModel.findOne({
+      organizationId,
+      branchId,
       name: dto.name,
       section: dto.section,
       academicYear: dto.academicYear,
-    });
+      isDeleted: false,
+    } as any);
     if (existing) {
       throw new ConflictException('Class with this name, section, and academic year already exists');
     }
-    return this.classModel.create(dto as any);
+    return this.classModel.create({ ...dto, organizationId, branchId } as any);
   }
 
-  async findAll(academicYear?: string): Promise<ClassDocument[]> {
-    const filter: any = {};
+  async findAll(organizationId: string, branchId: string, academicYear?: string): Promise<ClassDocument[]> {
+    const filter: any = { organizationId, branchId, isDeleted: false };
     if (academicYear) filter.academicYear = academicYear;
     return this.classModel.find(filter).populate('teacher', 'username email').sort({ name: 1 }).exec();
   }
 
   async findOne(id: string): Promise<ClassDocument> {
     const doc = await this.classModel.findById(id).populate('teacher', 'username email').exec();
-    if (!doc) throw new NotFoundException('Class not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Class not found');
     return doc;
   }
 
   async update(id: string, dto: UpdateClassDto): Promise<ClassDocument> {
     const doc = await this.classModel.findByIdAndUpdate(id, dto, { new: true }).exec();
-    if (!doc) throw new NotFoundException('Class not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Class not found');
     return doc;
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.classModel.findByIdAndDelete(id).exec();
+    const result = await this.classModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true }).exec();
     if (!result) throw new NotFoundException('Class not found');
   }
 
-  async count(): Promise<number> {
-    return this.classModel.countDocuments().exec();
+  async count(organizationId: string, branchId: string): Promise<number> {
+    return this.classModel.countDocuments({ organizationId, branchId, isDeleted: false } as any).exec();
   }
 }

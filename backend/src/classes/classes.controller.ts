@@ -7,25 +7,36 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 
-@Controller('classes')
+@Controller('organizations/:organizationId/branches/:branchId/classes')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
   @Roles(Role.Admin, Role.SuperAdmin)
-  create(@Body() dto: CreateClassDto) {
-    return this.classesService.create(dto);
+  create(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Body() dto: CreateClassDto,
+  ) {
+    return this.classesService.create(organizationId, branchId, dto);
   }
 
   @Get()
-  findAll(@Query('academicYear') academicYear?: string) {
-    return this.classesService.findAll(academicYear);
+  findAll(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Query('academicYear') academicYear?: string,
+  ) {
+    return this.classesService.findAll(organizationId, branchId, academicYear);
   }
 
   @Get('count')
-  count() {
-    return this.classesService.count();
+  count(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+  ) {
+    return this.classesService.count(organizationId, branchId);
   }
 
   @Get(':id')

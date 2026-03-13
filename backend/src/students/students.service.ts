@@ -9,16 +9,21 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 export class StudentsService {
   constructor(@InjectModel(Student.name) private studentModel: Model<StudentDocument>) {}
 
-  async create(dto: CreateStudentDto): Promise<StudentDocument> {
-    const existing = await this.studentModel.findOne({ admissionNumber: dto.admissionNumber });
+  async create(organizationId: string, branchId: string, dto: CreateStudentDto): Promise<StudentDocument> {
+    const existing = await this.studentModel.findOne({
+      organizationId,
+      branchId,
+      admissionNumber: dto.admissionNumber,
+      isDeleted: false,
+    } as any);
     if (existing) {
       throw new ConflictException('Student with this admission number already exists');
     }
-    return this.studentModel.create(dto as any);
+    return this.studentModel.create({ ...dto, organizationId, branchId } as any);
   }
 
-  async findAll(classId?: string, search?: string): Promise<StudentDocument[]> {
-    const filter: any = {};
+  async findAll(organizationId: string, branchId: string, classId?: string, search?: string): Promise<StudentDocument[]> {
+    const filter: any = { organizationId, branchId, isDeleted: false };
     if (classId) filter.classId = classId;
     if (search) {
       filter.$or = [
@@ -37,12 +42,12 @@ export class StudentsService {
     const doc = await this.studentModel.findById(id)
       .populate('classId', 'name section academicYear')
       .exec();
-    if (!doc) throw new NotFoundException('Student not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Student not found');
     return doc;
   }
 
-  async findByClass(classId: string): Promise<StudentDocument[]> {
-    return this.studentModel.find({ classId: classId as any, isActive: true })
+  async findByClass(organizationId: string, branchId: string, classId: string): Promise<StudentDocument[]> {
+    return this.studentModel.find({ organizationId, branchId, classId, isActive: true, isDeleted: false } as any)
       .sort({ lastName: 1, firstName: 1 })
       .exec();
   }
@@ -51,17 +56,17 @@ export class StudentsService {
     const doc = await this.studentModel.findByIdAndUpdate(id, dto, { new: true })
       .populate('classId', 'name section academicYear')
       .exec();
-    if (!doc) throw new NotFoundException('Student not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Student not found');
     return doc;
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.studentModel.findByIdAndDelete(id).exec();
+    const result = await this.studentModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true }).exec();
     if (!result) throw new NotFoundException('Student not found');
   }
 
-  async count(classId?: string): Promise<number> {
-    const filter: any = {};
+  async count(organizationId: string, branchId: string, classId?: string): Promise<number> {
+    const filter: any = { organizationId, branchId, isDeleted: false };
     if (classId) filter.classId = classId;
     return this.studentModel.countDocuments(filter).exec();
   }

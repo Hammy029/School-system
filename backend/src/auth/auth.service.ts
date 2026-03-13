@@ -65,7 +65,7 @@ export class AuthService {
   // ─── ADMIN REGISTER (pre-approved) ──────────────────────────
 
   async adminRegister(registerDto: RegisterDto, adminUser: any) {
-    const { username, email, phone_no, role, schoolId } = registerDto;
+    const { username, email, phone_no, role, organizationId, branchId } = registerDto;
     const normalizedEmail = email.toLowerCase();
 
     const existingUser = await this.userModel.findOne({ email: normalizedEmail });
@@ -85,7 +85,8 @@ export class AuthService {
       isApproved: true,
       requirePasswordChange: true,
       temporaryPassword: generatedPassword,
-      schoolId: schoolId ? new Types.ObjectId(schoolId) : adminUser.schoolId,
+      organizationId: organizationId ? new Types.ObjectId(organizationId) : adminUser.organizationId,
+      branchId: branchId ? new Types.ObjectId(branchId) : adminUser.branchId,
     });
 
     await newUser.save();
@@ -129,14 +130,16 @@ export class AuthService {
       email: user.email,
       username: user.username,
       role: user.role,
-      schoolId: user.schoolId?.toString(),
+      organizationId: user.organizationId?.toString(),
+      branchId: user.branchId?.toString(),
     };
     const access_token = this.jwtService.sign(payload);
 
     // Create session record
     await this.sessionModel.create({
       userId: user._id,
-      schoolId: user.schoolId,
+      organizationId: user.organizationId,
+      branchId: user.branchId,
       loginAt: new Date(),
       ipAddress,
     } as any);
@@ -150,7 +153,8 @@ export class AuthService {
         email: user.email,
         role: user.role,
         phone_no: user.phone_no,
-        schoolId: user.schoolId?.toString(),
+        organizationId: user.organizationId?.toString(),
+        branchId: user.branchId?.toString(),
       },
     };
   }
@@ -255,15 +259,18 @@ export class AuthService {
 
   // ─── APPROVE USER ───────────────────────────────────────────
 
-  async approveUser(userId: string, schoolId?: string) {
+  async approveUser(userId: string, organizationId?: string, branchId?: string) {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     user.isApproved = true;
-    if (schoolId) {
-      user.schoolId = new Types.ObjectId(schoolId) as any;
+    if (organizationId) {
+      user.organizationId = new Types.ObjectId(organizationId) as any;
+    }
+    if (branchId) {
+      user.branchId = new Types.ObjectId(branchId) as any;
     }
     await user.save();
 
@@ -295,10 +302,10 @@ export class AuthService {
 
   // ─── FIND ALL USERS ─────────────────────────────────────────
 
-  async findAllUsers(schoolId?: string) {
+  async findAllUsers(organizationId?: string) {
     const filter: any = {};
-    if (schoolId) {
-      filter.schoolId = new Types.ObjectId(schoolId);
+    if (organizationId) {
+      filter.organizationId = new Types.ObjectId(organizationId);
     }
 
     return this.userModel
@@ -336,9 +343,9 @@ export class AuthService {
 
   // ─── SESSION HELPERS ─────────────────────────────────────────
 
-  async getActiveUserIds(schoolId: string) {
+  async getActiveUserIds(organizationId: string) {
     const sessions = await this.sessionModel.find({
-      schoolId: new Types.ObjectId(schoolId),
+      organizationId: new Types.ObjectId(organizationId),
       logoutAt: null,
     } as any);
     return sessions.map((s) => s.userId.toString());

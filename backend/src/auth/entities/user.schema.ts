@@ -30,9 +30,13 @@ export class User {
   @Prop({ required: false, default: null })
   temporaryPassword?: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'School' })
-  schoolId!: MongooseSchema.Types.ObjectId;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Organization', index: true })
+  organizationId!: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'OrganizationBranch', index: true })
+  branchId!: MongooseSchema.Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.set('timestamps', true);
+UserSchema.index({ organizationId: 1, branchId: 1 });

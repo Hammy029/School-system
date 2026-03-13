@@ -5,6 +5,22 @@ export type PerformanceDocument = Performance & Document;
 
 @Schema()
 export class Performance {
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Organization',
+    index: true,
+  })
+  organizationId!: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'OrganizationBranch',
+    index: true,
+  })
+  branchId!: MongooseSchema.Types.ObjectId;
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Student', required: true })
   studentId!: MongooseSchema.Types.ObjectId;
 
@@ -34,9 +50,12 @@ export class Performance {
 
   @Prop({ required: false, default: 0 })
   points?: number;
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
 }
 
 export const PerformanceSchema = SchemaFactory.createForClass(Performance);
 PerformanceSchema.set('timestamps', true);
-PerformanceSchema.index({ studentId: 1, subjectId: 1, academicYear: 1, term: 1, examType: 1 }, { unique: true });
-PerformanceSchema.index({ classId: 1, academicYear: 1, term: 1 });
+PerformanceSchema.index({ organizationId: 1, branchId: 1, studentId: 1, subjectId: 1, academicYear: 1, term: 1, examType: 1 }, { unique: true });
+PerformanceSchema.index({ organizationId: 1, branchId: 1, classId: 1, academicYear: 1, term: 1 });

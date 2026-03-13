@@ -2,12 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { OrgContextService } from './org-context.service';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
-  private apiUrl = `${environment.apiUrl}/students`;
+  private get apiUrl(): string {
+    return `${environment.apiUrl}${this.orgContext.getApiPrefix()}/students`;
+  }
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private orgContext: OrgContextService) {}
 
   getAll(classId?: string, search?: string): Observable<any[]> {
     const params: any = {};

@@ -9,16 +9,21 @@ import { UpdateSubjectDto } from './dto/update-subject.dto';
 export class SubjectsService {
   constructor(@InjectModel(Subject.name) private subjectModel: Model<SubjectDocument>) {}
 
-  async create(dto: CreateSubjectDto): Promise<SubjectDocument> {
-    const existing = await this.subjectModel.findOne({ code: dto.code });
+  async create(organizationId: string, branchId: string, dto: CreateSubjectDto): Promise<SubjectDocument> {
+    const existing = await this.subjectModel.findOne({
+      organizationId,
+      branchId,
+      code: dto.code,
+      isDeleted: false,
+    } as any);
     if (existing) {
       throw new ConflictException('Subject with this code already exists');
     }
-    return this.subjectModel.create(dto as any);
+    return this.subjectModel.create({ ...dto, organizationId, branchId } as any);
   }
 
-  async findAll(classId?: string): Promise<SubjectDocument[]> {
-    const filter: any = {};
+  async findAll(organizationId: string, branchId: string, classId?: string): Promise<SubjectDocument[]> {
+    const filter: any = { organizationId, branchId, isDeleted: false };
     if (classId) filter.classId = classId;
     return this.subjectModel.find(filter)
       .populate('classId', 'name section')
@@ -32,22 +37,22 @@ export class SubjectsService {
       .populate('classId', 'name section')
       .populate('teacher', 'username email')
       .exec();
-    if (!doc) throw new NotFoundException('Subject not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Subject not found');
     return doc;
   }
 
   async update(id: string, dto: UpdateSubjectDto): Promise<SubjectDocument> {
     const doc = await this.subjectModel.findByIdAndUpdate(id, dto, { new: true }).exec();
-    if (!doc) throw new NotFoundException('Subject not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Subject not found');
     return doc;
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.subjectModel.findByIdAndDelete(id).exec();
+    const result = await this.subjectModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true }).exec();
     if (!result) throw new NotFoundException('Subject not found');
   }
 
-  async count(): Promise<number> {
-    return this.subjectModel.countDocuments().exec();
+  async count(organizationId: string, branchId: string): Promise<number> {
+    return this.subjectModel.countDocuments({ organizationId, branchId, isDeleted: false } as any).exec();
   }
 }

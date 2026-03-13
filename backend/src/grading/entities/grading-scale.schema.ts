@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type GradeEntryDocument = GradeEntry & Document;
 
@@ -27,6 +27,22 @@ export type GradingScaleDocument = GradingScale & Document;
 
 @Schema()
 export class GradingScale {
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Organization',
+    index: true,
+  })
+  organizationId!: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'OrganizationBranch',
+    index: true,
+  })
+  branchId!: MongooseSchema.Types.ObjectId;
+
   @Prop({ required: true })
   name!: string;
 
@@ -38,7 +54,11 @@ export class GradingScale {
 
   @Prop({ default: true })
   isActive!: boolean;
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
 }
 
 export const GradingScaleSchema = SchemaFactory.createForClass(GradingScale);
 GradingScaleSchema.set('timestamps', true);
+GradingScaleSchema.index({ organizationId: 1, branchId: 1 });

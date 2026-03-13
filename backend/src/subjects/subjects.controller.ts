@@ -7,25 +7,36 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 
-@Controller('subjects')
+@Controller('organizations/:organizationId/branches/:branchId/subjects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 
   @Post()
   @Roles(Role.Admin, Role.SuperAdmin)
-  create(@Body() dto: CreateSubjectDto) {
-    return this.subjectsService.create(dto);
+  create(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Body() dto: CreateSubjectDto,
+  ) {
+    return this.subjectsService.create(organizationId, branchId, dto);
   }
 
   @Get()
-  findAll(@Query('classId') classId?: string) {
-    return this.subjectsService.findAll(classId);
+  findAll(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Query('classId') classId?: string,
+  ) {
+    return this.subjectsService.findAll(organizationId, branchId, classId);
   }
 
   @Get('count')
-  count() {
-    return this.subjectsService.count();
+  count(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+  ) {
+    return this.subjectsService.count(organizationId, branchId);
   }
 
   @Get(':id')

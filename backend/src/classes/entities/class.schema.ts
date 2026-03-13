@@ -5,6 +5,22 @@ export type ClassDocument = Class & Document;
 
 @Schema()
 export class Class {
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Organization',
+    index: true,
+  })
+  organizationId!: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    required: true,
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'OrganizationBranch',
+    index: true,
+  })
+  branchId!: MongooseSchema.Types.ObjectId;
+
   @Prop({ required: true })
   name!: string;
 
@@ -19,8 +35,11 @@ export class Class {
 
   @Prop({ default: true })
   isActive!: boolean;
+
+  @Prop({ default: false })
+  isDeleted?: boolean;
 }
 
 export const ClassSchema = SchemaFactory.createForClass(Class);
 ClassSchema.set('timestamps', true);
-ClassSchema.index({ name: 1, section: 1, academicYear: 1 }, { unique: true });
+ClassSchema.index({ organizationId: 1, branchId: 1, name: 1, section: 1, academicYear: 1 }, { unique: true });

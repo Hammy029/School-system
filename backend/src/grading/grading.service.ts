@@ -9,38 +9,44 @@ import { UpdateGradingScaleDto } from './dto/update-grading-scale.dto';
 export class GradingService {
   constructor(@InjectModel(GradingScale.name) private gradingModel: Model<GradingScaleDocument>) {}
 
-  async create(dto: CreateGradingScaleDto): Promise<GradingScaleDocument> {
+  async create(organizationId: string, branchId: string, dto: CreateGradingScaleDto): Promise<GradingScaleDocument> {
     if (dto.isDefault) {
-      await this.gradingModel.updateMany({}, { isDefault: false });
+      await this.gradingModel.updateMany({ organizationId, branchId } as any, { isDefault: false });
     }
-    return this.gradingModel.create(dto);
+    return this.gradingModel.create({ ...dto, organizationId, branchId } as any);
   }
 
-  async findAll(): Promise<GradingScaleDocument[]> {
-    return this.gradingModel.find().sort({ name: 1 }).exec();
+  async findAll(organizationId: string, branchId: string): Promise<GradingScaleDocument[]> {
+    return this.gradingModel.find({ organizationId, branchId, isDeleted: false } as any).sort({ name: 1 }).exec();
   }
 
   async findOne(id: string): Promise<GradingScaleDocument> {
     const doc = await this.gradingModel.findById(id).exec();
-    if (!doc) throw new NotFoundException('Grading scale not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Grading scale not found');
     return doc;
   }
 
-  async findDefault(): Promise<GradingScaleDocument | null> {
-    return this.gradingModel.findOne({ isDefault: true }).exec();
+  async findDefault(organizationId: string, branchId: string): Promise<GradingScaleDocument | null> {
+    return this.gradingModel.findOne({ organizationId, branchId, isDefault: true, isDeleted: false } as any).exec();
   }
 
   async update(id: string, dto: UpdateGradingScaleDto): Promise<GradingScaleDocument> {
     if (dto.isDefault) {
-      await this.gradingModel.updateMany({ _id: { $ne: id } }, { isDefault: false });
+      const existing = await this.gradingModel.findById(id);
+      if (existing) {
+        await this.gradingModel.updateMany(
+          { organizationId: existing.organizationId, branchId: existing.branchId, _id: { $ne: id } } as any,
+          { isDefault: false },
+        );
+      }
     }
     const doc = await this.gradingModel.findByIdAndUpdate(id, dto, { new: true }).exec();
-    if (!doc) throw new NotFoundException('Grading scale not found');
+    if (!doc || doc.isDeleted) throw new NotFoundException('Grading scale not found');
     return doc;
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.gradingModel.findByIdAndDelete(id).exec();
+    const result = await this.gradingModel.findByIdAndUpdate(id, { isDeleted: true }, { new: true }).exec();
     if (!result) throw new NotFoundException('Grading scale not found');
   }
 
