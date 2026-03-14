@@ -5,12 +5,17 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 import { OrganizationDocument, SubscriptionStatus } from './entities/organization.schema';
 import { OrganizationRepository } from './organization.repository';
 import { OrganizationBranchService } from '../organization-branch/organization-branch.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { BranchType } from '../organization-branch/entities/organization-branch.schema';
+import { User, UserDocument } from '../../auth/entities/user.schema';
+import { Role } from '../../auth/roles.enum';
 
 @Injectable()
 export class OrganizationService {
@@ -18,6 +23,7 @@ export class OrganizationService {
     private readonly organizationRepository: OrganizationRepository,
     @Inject(forwardRef(() => OrganizationBranchService))
     private readonly branchService: OrganizationBranchService,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
   async create(
@@ -44,7 +50,7 @@ export class OrganizationService {
     } as any);
 
     // Create default main branch
-    await this.branchService.create(organization._id.toString(), {
+    const defaultBranch = await this.branchService.create(organization._id.toString(), {
       name: `${createDto.name} - Main Branch`,
       description: `Main branch for ${createDto.name}`,
       type: BranchType.MAIN,
@@ -53,6 +59,32 @@ export class OrganizationService {
       phone: createDto.phone,
       email: createDto.email,
     });
+
+    // Create default admin user
+    const adminPassword = createDto.adminPassword || this.generateRandomPassword(8);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    const adminUser = new this.userModel({
+      username: createDto.adminUsername,
+      email: createDto.adminEmail.toLowerCase(),
+      phone_no: createDto.adminPhone,
+      password: hashedPassword,
+      role: Role.Admin,
+      isApproved: true,
+      requirePasswordChange: !createDto.adminPassword,
+      temporaryPassword: !createDto.adminPassword ? adminPassword : null,
+      organizationId: new Types.ObjectId(organization._id.toString()),
+      branchId: new Types.ObjectId(defaultBranch._id.toString()),
+    });
+    await adminUser.save();
+
+    (organization as any).defaultAdmin = {
+      _id: adminUser._id,
+      username: adminUser.username,
+      email: adminUser.email,
+      role: adminUser.role,
+      temporaryPassword: !createDto.adminPassword ? adminPassword : undefined,
+    };
 
     return organization;
   }
@@ -144,6 +176,17 @@ export class OrganizationService {
       throw new NotFoundException('Organization not found');
     }
     return updated;
+  }
+
+  private generateRandomPassword(length: number): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+    let password = '';
+    const randomValues = new Uint8Array(length);
+    require('crypto').randomFillSync(randomValues);
+    for (let i = 0; i < length; i++) {
+      password += chars[randomValues[i] % chars.length];
+    }
+    return password;
   }
 
   private async generateOrgCode(name: string): Promise<string> {

@@ -7,18 +7,21 @@ import {
 import { OrganizationRepository } from './organization.repository';
 import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
+import { ClientsController } from './clients.controller';
 import { OrganizationBranchModule } from '../organization-branch/organization-branch.module';
+import { User, UserSchema } from '../../auth/entities/user.schema';
 
 @Global()
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Organization.name, schema: OrganizationSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => OrganizationBranchModule),
   ],
   providers: [OrganizationRepository, OrganizationService],
-  controllers: [OrganizationController],
+  controllers: [OrganizationController, ClientsController],
   exports: [OrganizationService, OrganizationRepository, MongooseModule],
 })
 export class OrganizationModule {}

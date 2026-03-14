@@ -9,6 +9,7 @@ import {
   IsDateString,
   IsObject,
   Min,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -66,4 +67,21 @@ export class CreateOrganizationDto {
   @IsOptional()
   @IsBoolean()
   allowSelfRegistration?: boolean;
+
+  // Default admin fields
+  @IsNotEmpty()
+  @IsString()
+  adminUsername: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  adminEmail: string;
+
+  @IsNotEmpty()
+  @IsString()
+  adminPhone: string;
+
+  @IsOptional()
+  @MinLength(6)
+  adminPassword?: string;
 }
