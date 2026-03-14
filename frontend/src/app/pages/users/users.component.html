@@ -76,6 +76,7 @@
                   <button (click)="confirmReject(user)" class="text-sm text-orange-500 hover:text-orange-400">Reject</button>
                 }
                 <button (click)="confirmDelete(user)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                <button (click)="openPermissions(user)" class="text-sm text-purple-500 hover:text-purple-400">Permissions</button>
               </td>
             </tr>
           }
@@ -141,4 +142,15 @@
   <!-- Confirm Dialog -->
   <app-confirm-dialog [visible]="showConfirm" [darkMode]="darkMode" [title]="confirmTitle" [message]="confirmMessage" [type]="confirmType"
     (confirmed)="confirmAction && confirmAction()" (cancelled)="showConfirm = false"></app-confirm-dialog>
+
+  <!-- Permissions Modal -->
+  <app-permissions-modal
+    [isOpen]="showPermissions"
+    [userId]="selectedUserId"
+    [userName]="selectedUserName"
+    [userRole]="selectedUserRole"
+    [darkMode]="darkMode"
+    (closed)="showPermissions = false"
+    (saved)="onPermissionsSaved()"
+  ></app-permissions-modal>
 </div>

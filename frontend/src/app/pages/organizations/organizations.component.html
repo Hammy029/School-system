@@ -1,0 +1,170 @@
+<!-- Success / Error banners -->
+@if (success) {
+  <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">{{ success }}</div>
+}
+@if (error) {
+  <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">{{ error }}</div>
+}
+
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <h1 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-900'">Organizations</h1>
+  <button (click)="openModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">+ New Organization</button>
+</div>
+
+<!-- Filters -->
+<div class="flex flex-col sm:flex-row gap-3 mb-6">
+  <input [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by name, code, email..."
+    class="flex-1 px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+  <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()"
+    class="px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'">
+    <option value="">All Statuses</option>
+    @for (s of statuses; track s) { <option [value]="s">{{ s | titlecase }}</option> }
+  </select>
+</div>
+
+<!-- Loading -->
+@if (loading) {
+  <div class="flex justify-center py-12">
+    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+}
+
+<!-- Table -->
+@if (!loading) {
+  <div class="overflow-x-auto rounded-lg border" [class]="darkMode ? 'border-slate-700' : 'border-gray-200'">
+    <table class="w-full text-sm">
+      <thead [class]="darkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-50 text-gray-600'">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium">Name</th>
+          <th class="px-4 py-3 text-left font-medium">Code</th>
+          <th class="px-4 py-3 text-left font-medium">Email</th>
+          <th class="px-4 py-3 text-left font-medium">Package</th>
+          <th class="px-4 py-3 text-left font-medium">Status</th>
+          <th class="px-4 py-3 text-left font-medium">Branches</th>
+          <th class="px-4 py-3 text-right font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody [class]="darkMode ? 'divide-slate-700' : 'divide-gray-200'" class="divide-y">
+        @for (org of filteredOrgs; track org._id) {
+          <tr [class]="darkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'">
+            <td class="px-4 py-3 font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ org.name }}</td>
+            <td class="px-4 py-3" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ org.org_code }}</td>
+            <td class="px-4 py-3" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ org.email || '-' }}</td>
+            <td class="px-4 py-3"><span class="capitalize" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ org.package }}</span></td>
+            <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-medium" [class]="getStatusColor(org.subscriptionStatus)">{{ org.subscriptionStatus | titlecase }}</span></td>
+            <td class="px-4 py-3" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ org.activeBranchesCount || 0 }}/{{ org.maxBranches }}</td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <button (click)="viewOrg(org)" class="p-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-600" title="View">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                </button>
+                <button (click)="openModal(org)" class="p-1.5 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900 text-yellow-600" title="Edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+                </button>
+                @if (org.subscriptionStatus === 'pending') {
+                  <button (click)="confirmApprove(org)" class="p-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900 text-green-600" title="Approve">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                  </button>
+                  <button (click)="confirmDecline(org)" class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600" title="Decline">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                  </button>
+                }
+                @if (org.subscriptionStatus === 'inactive' || org.subscriptionStatus === 'declined') {
+                  <button (click)="confirmActivate(org)" class="p-1.5 rounded hover:bg-green-100 dark:hover:bg-green-900 text-green-600" title="Activate">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9"/></svg>
+                  </button>
+                }
+                @if (org.subscriptionStatus === 'active') {
+                  <button (click)="confirmDeactivate(org)" class="p-1.5 rounded hover:bg-orange-100 dark:hover:bg-orange-900 text-orange-600" title="Deactivate">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9v6m-4.5 0V9M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                  </button>
+                }
+                <button (click)="confirmDelete(org)" class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-600" title="Delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="px-4 py-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No organizations found</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- Create/Edit Modal -->
+@if (showModal) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="w-full max-w-lg rounded-xl shadow-xl max-h-[90vh] overflow-y-auto" [class]="darkMode ? 'bg-slate-800' : 'bg-white'">
+      <div class="flex items-center justify-between p-4 border-b" [class]="darkMode ? 'border-slate-700' : 'border-gray-200'">
+        <h2 class="text-lg font-semibold" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ editingId ? 'Edit' : 'New' }} Organization</h2>
+        <button (click)="closeModal()" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-4 space-y-4">
+        @if (error) { <div class="p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div> }
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Name *</label>
+          <input [(ngModel)]="form.name" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Email</label>
+            <input [(ngModel)]="form.email" type="email" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Phone</label>
+            <input [(ngModel)]="form.phone" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Address</label>
+          <input [(ngModel)]="form.address" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Package</label>
+            <select [(ngModel)]="form.package" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'">
+              @for (p of packages; track p) { <option [value]="p">{{ p | titlecase }}</option> }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Max Branches</label>
+            <input [(ngModel)]="form.maxBranches" type="number" min="1" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <label class="flex items-center gap-2 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">
+            <input type="checkbox" [(ngModel)]="form.hasMultipleBranches" class="rounded" /> Multi-Branch
+          </label>
+          <label class="flex items-center gap-2 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">
+            <input type="checkbox" [(ngModel)]="form.allowSelfRegistration" class="rounded" /> Self Registration
+          </label>
+        </div>
+        @if (!editingId) {
+          <div class="border-t pt-4" [class]="darkMode ? 'border-slate-700' : 'border-gray-200'">
+            <h3 class="text-sm font-semibold mb-3" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Default Admin</h3>
+            <div class="space-y-3">
+              <input [(ngModel)]="form.adminUsername" placeholder="Admin Username *" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+              <div class="grid grid-cols-2 gap-3">
+                <input [(ngModel)]="form.adminEmail" placeholder="Admin Email *" type="email" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+                <input [(ngModel)]="form.adminPhone" placeholder="Admin Phone *" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+              </div>
+              <input [(ngModel)]="form.adminPassword" placeholder="Admin Password (auto-generated if empty)" type="password" class="w-full px-3 py-2 rounded-lg border text-sm" [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300'" />
+            </div>
+          </div>
+        }
+      </div>
+      <div class="flex justify-end gap-3 p-4 border-t" [class]="darkMode ? 'border-slate-700' : 'border-gray-200'">
+        <button (click)="closeModal()" class="px-4 py-2 rounded-lg text-sm font-medium" [class]="darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'">Cancel</button>
+        <button (click)="save()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog [isOpen]="showConfirm" [title]="confirmTitle" [message]="confirmMessage" [type]="confirmType" (confirmed)="confirmAction?.(); showConfirm = false" (cancelled)="showConfirm = false"></app-confirm-dialog>
+<app-view-modal [isOpen]="showView" title="Organization Details" [fields]="viewFields" (closed)="showView = false"></app-view-modal>

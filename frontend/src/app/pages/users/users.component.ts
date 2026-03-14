@@ -6,11 +6,12 @@ import { ThemeService } from '../../shared/services/theme.service';
 import { AuthService } from '../../authentication/core/auth/auth.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog.component';
 import { ViewModalComponent } from '../../shared/components/view-modal.component';
+import { PermissionsModalComponent } from '../../shared/components/permissions-modal.component';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent, ViewModalComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, ViewModalComponent, PermissionsModalComponent],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css'],
 })
@@ -37,6 +38,12 @@ export class UsersComponent implements OnInit {
   // View modal
   showView = false;
   viewFields: { label: string; value: string }[] = [];
+
+  // Permissions modal
+  showPermissions = false;
+  selectedUserId = '';
+  selectedUserName = '';
+  selectedUserRole = '';
 
   roles = ['user', 'teacher', 'admin', 'super_admin'];
   form = { username: '', email: '', phone_no: '', role: 'user' };
@@ -152,5 +159,17 @@ export class UsersComponent implements OnInit {
       });
     };
     this.showConfirm = true;
+  }
+
+  openPermissions(user: any) {
+    this.selectedUserId = user._id;
+    this.selectedUserName = user.username;
+    this.selectedUserRole = user.role;
+    this.showPermissions = true;
+  }
+
+  onPermissionsSaved() {
+    this.success = 'Permissions updated!';
+    setTimeout(() => (this.success = ''), 3000);
   }
 }

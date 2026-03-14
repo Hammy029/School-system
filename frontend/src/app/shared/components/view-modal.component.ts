@@ -45,6 +45,9 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class ViewModalComponent {
+    @Input()
+    set isOpen(val: boolean) { this.visible = val; }
+    get isOpen(): boolean { return this.visible; }
   @Input() visible = false;
   @Input() title = 'Details';
   @Input() darkMode = false;

@@ -18,6 +18,8 @@ export class LayoutComponent implements OnInit {
 
   navItems = [
     { path: '/app/dashboard', label: 'Dashboard', icon: 'home' },
+    { path: '/app/organizations', label: 'Organizations', icon: 'business' },
+    { path: '/app/branches', label: 'Branches', icon: 'storefront' },
     { path: '/app/users', label: 'Users', icon: 'person' },
     { path: '/app/staff', label: 'Staff', icon: 'badge' },
     { path: '/app/classes', label: 'Classes', icon: 'school' },

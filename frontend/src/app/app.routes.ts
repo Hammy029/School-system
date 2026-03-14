@@ -18,6 +18,8 @@ import { StaffComponent } from './pages/staff/staff.component';
 import { TimetableComponent } from './pages/timetable/timetable.component';
 import { PaymentsComponent } from './pages/payments/payments.component';
 import { ApprovalsComponent } from './pages/approvals/approvals.component';
+import { OrganizationsComponent } from './pages/organizations/organizations.component';
+import { BranchesComponent } from './pages/branches/branches.component';
 
 export const routes: Routes = [
   // Public routes
@@ -47,6 +49,8 @@ export const routes: Routes = [
       { path: 'performance', component: PerformanceComponent },
       { path: 'payments', component: PaymentsComponent },
       { path: 'approvals', component: ApprovalsComponent },
+      { path: 'organizations', component: OrganizationsComponent },
+      { path: 'branches', component: BranchesComponent },
       { path: 'reports', component: ReportsComponent },
     ],
   },

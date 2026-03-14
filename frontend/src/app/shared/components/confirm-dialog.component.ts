@@ -7,10 +7,10 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     @if (visible) {
-      <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50" (click)="onCancel()">
+      <div class="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50" (click)="onCancel()">
         <div class="w-full max-w-sm rounded-xl p-6 shadow-xl" [class]="darkMode ? 'bg-slate-800' : 'bg-white'" (click)="$event.stopPropagation()">
           <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
               [class]="{
                 'bg-red-100 text-red-600': type === 'danger',
                 'bg-yellow-100 text-yellow-600': type === 'warning',
@@ -56,6 +56,9 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class ConfirmDialogComponent {
+    @Input()
+    set isOpen(val: boolean) { this.visible = val; }
+    get isOpen(): boolean { return this.visible; }
   @Input() visible = false;
   @Input() title = 'Confirm';
   @Input() message = 'Are you sure?';
