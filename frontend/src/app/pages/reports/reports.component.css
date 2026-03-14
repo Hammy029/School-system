@@ -1,0 +1,355 @@
+/* ===== Report Print Area ===== */
+.report-print-area {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  border: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+/* ===== Green Header ===== */
+.report-header {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  padding: 0;
+}
+.report-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+.report-logo {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+/* ===== Student Info Bar ===== */
+.report-info-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+.report-info-item {
+  padding: 12px 20px;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.report-info-item:last-child {
+  border-right: none;
+}
+.report-info-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+.report-info-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ===== Report Sections ===== */
+.report-section {
+  padding: 0 20px 16px;
+}
+.report-section:first-of-type {
+  padding-top: 16px;
+}
+.report-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #15803d;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #dcfce7;
+}
+
+/* ===== Report Table ===== */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table thead tr {
+  background: #f0fdf4;
+  border-bottom: 2px solid #bbf7d0;
+}
+.report-table th {
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #15803d;
+  white-space: nowrap;
+}
+.report-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  color: #374151;
+}
+.report-table tbody tr:hover {
+  background: #f9fafb;
+}
+.report-row-alt {
+  background: #fafbfc;
+}
+.report-table-footer td {
+  background: #f0fdf4;
+  border-top: 2px solid #bbf7d0;
+  border-bottom: none;
+  padding: 10px;
+}
+
+.report-code {
+  font-size: 10px;
+  font-family: monospace;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+.report-avg-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+}
+.report-grade-badge {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* ===== Performance Chart ===== */
+.report-chart-container {
+  width: 100%;
+  height: 220px;
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.report-chart-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.report-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 10px 0 0;
+  font-size: 11px;
+  color: #6b7280;
+}
+.report-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.report-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.report-legend-line {
+  width: 18px;
+  height: 0;
+  border-top: 2px dashed #6b7280;
+  display: inline-block;
+}
+
+/* ===== Examination Details Grid ===== */
+.report-exam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.report-exam-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.report-exam-card-header {
+  background: #f0fdf4;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+.report-exam-scores {
+  padding: 6px 12px;
+}
+.report-exam-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.report-exam-row:last-child {
+  border-bottom: none;
+}
+.report-exam-avg-row {
+  border-top: 1px solid #d1d5db;
+  margin-top: 2px;
+  padding-top: 6px;
+}
+
+/* ===== Report Footer ===== */
+.report-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #f0fdf4;
+  border-top: 2px solid #bbf7d0;
+}
+.report-footer-stats {
+  display: flex;
+  gap: 28px;
+}
+.report-footer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.report-footer-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+.report-footer-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+.report-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #15803d;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.report-print-btn:hover {
+  background: #166534;
+}
+
+/* ===== Print / PDF Styles ===== */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .report-print-area {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  .report-header {
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%) !important;
+  }
+
+  .report-table thead tr {
+    background: #f0fdf4 !important;
+  }
+
+  .report-table-footer td {
+    background: #f0fdf4 !important;
+  }
+
+  .report-row-alt {
+    background: #fafbfc !important;
+  }
+
+  .report-info-bar {
+    background: #f9fafb !important;
+  }
+
+  .report-footer {
+    background: #f0fdf4 !important;
+  }
+
+  .report-chart-container {
+    height: 200px;
+    page-break-inside: avoid;
+  }
+
+  .report-section {
+    page-break-inside: avoid;
+  }
+
+  .report-exam-grid {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .report-info-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .report-info-item {
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .report-exam-grid {
+    grid-template-columns: 1fr;
+  }
+  .report-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .report-footer-stats {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+}
