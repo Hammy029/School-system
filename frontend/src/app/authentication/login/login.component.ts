@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth/auth.service';
 import { Role } from '../../shared/models/roles.enum';
+import { ThemeService } from '../../shared/services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -18,11 +19,19 @@ export class LoginComponent {
   errorMessage: string | null = null;
   showPassword = false;
   loading = false;
+  darkMode = false;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-  ) {}
+    public themeService: ThemeService,
+  ) {
+    this.themeService.darkMode$.subscribe(d => this.darkMode = d);
+  }
+
+  toggleDarkMode() {
+    this.themeService.toggleTheme();
+  }
 
   onSubmit(form: NgForm) {
     if (form.invalid) {

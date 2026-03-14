@@ -1,6 +1,20 @@
-<div class="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-  <div class="w-full max-w-md">
-    <div class="bg-white rounded-2xl shadow-lg px-8 pt-10 pb-8 space-y-6">
+
+<div class="relative min-h-screen transition-colors duration-300">
+  <!-- Dark/Light Mode Switcher (Dashboard style, top right) -->
+  <div class="absolute top-6 right-8 z-50">
+    <button type="button" (click)="toggleDarkMode()" class="p-2 rounded-full border border-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition" [attr.aria-label]="darkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+      <svg *ngIf="!darkMode" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1.5M12 19.5V21M4.219 4.219l1.061 1.061M17.657 17.657l1.061 1.061M3 12h1.5M19.5 12H21M4.219 19.781l1.061-1.061M17.657 6.343l1.061-1.061M12 7.5A4.5 4.5 0 1 1 7.5 12 4.505 4.505 0 0 1 12 7.5z" />
+      </svg>
+      <svg *ngIf="darkMode" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md">
+      <div class="bg-white rounded-2xl shadow-lg px-8 pt-10 pb-8 space-y-6 transition-colors duration-300 dark:bg-slate-800">
 
       <!-- Logo & Title -->
       <div class="flex flex-col items-center space-y-3">
