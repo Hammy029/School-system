@@ -71,6 +71,5 @@ export class Organization {
 export type OrganizationDocument = Organization & Document;
 export const OrganizationSchema = SchemaFactory.createForClass(Organization);
 
-OrganizationSchema.index({ org_code: 1 }, { unique: true });
 OrganizationSchema.index({ subscriptionStatus: 1 });
 OrganizationSchema.index({ isDeleted: 1 });
