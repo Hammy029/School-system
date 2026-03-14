@@ -13,6 +13,11 @@ import { StudentsComponent } from './pages/students/students.component';
 import { GradingComponent } from './pages/grading/grading.component';
 import { PerformanceComponent } from './pages/performance/performance.component';
 import { ReportsComponent } from './pages/reports/reports.component';
+import { UsersComponent } from './pages/users/users.component';
+import { StaffComponent } from './pages/staff/staff.component';
+import { TimetableComponent } from './pages/timetable/timetable.component';
+import { PaymentsComponent } from './pages/payments/payments.component';
+import { ApprovalsComponent } from './pages/approvals/approvals.component';
 
 export const routes: Routes = [
   // Public routes
@@ -32,11 +37,16 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
+      { path: 'users', component: UsersComponent },
+      { path: 'staff', component: StaffComponent },
       { path: 'classes', component: ClassesComponent },
       { path: 'subjects', component: SubjectsComponent },
       { path: 'students', component: StudentsComponent },
+      { path: 'timetable', component: TimetableComponent },
       { path: 'grading', component: GradingComponent },
       { path: 'performance', component: PerformanceComponent },
+      { path: 'payments', component: PaymentsComponent },
+      { path: 'approvals', component: ApprovalsComponent },
       { path: 'reports', component: ReportsComponent },
     ],
   },

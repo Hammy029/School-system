@@ -76,6 +76,18 @@ export class PerformanceController {
     return this.performanceService.getClassReport(organizationId, branchId, classId, academicYear, term);
   }
 
+  @Get('report/combined-ranking')
+  getCombinedRanking(
+    @Param('organizationId') organizationId: string,
+    @Param('branchId') branchId: string,
+    @Query('classIds') classIds: string,
+    @Query('academicYear') academicYear: string,
+    @Query('term') term: string,
+  ) {
+    const ids = classIds.split(',').map(id => id.trim());
+    return this.performanceService.getCombinedClassRanking(organizationId, branchId, ids, academicYear, term);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.performanceService.findOne(id);

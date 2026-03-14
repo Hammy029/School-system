@@ -343,6 +343,58 @@ export class PerformanceService {
     return ranking;
   }
 
+  async getCombinedClassRanking(organizationId: string, branchId: string, classIds: string[], academicYear: string, term: string) {
+    const allStudents: any[] = [];
+
+    for (const classId of classIds) {
+      const classDoc = await this.classModel.findById(classId).exec();
+      const students = await this.studentModel.find({
+        organizationId, branchId, classId, isActive: true, isDeleted: false,
+      } as any).exec();
+
+      for (const student of students) {
+        const sid = student._id.toString();
+        const perfs = await this.performanceModel.find({
+          organizationId, branchId, studentId: sid, academicYear, term, isDeleted: false,
+        } as any).exec();
+
+        if (perfs.length > 0) {
+          const subjectScores = new Map<string, number[]>();
+          for (const p of perfs) {
+            const key = p.subjectId.toString();
+            if (!subjectScores.has(key)) subjectScores.set(key, []);
+            subjectScores.get(key)!.push(p.score);
+          }
+          const subjectAvgs = Array.from(subjectScores.values()).map(
+            scores => scores.reduce((a, b) => a + b, 0) / scores.length,
+          );
+          const avg = subjectAvgs.reduce((a, b) => a + b, 0) / subjectAvgs.length;
+
+          allStudents.push({
+            studentId: sid,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            admissionNumber: student.admissionNumber,
+            className: classDoc ? `${classDoc.name}${classDoc.section ? ' ' + classDoc.section : ''}` : '',
+            classId,
+            overallAverage: Math.round(avg * 100) / 100,
+            totalSubjects: subjectScores.size,
+          });
+        }
+      }
+    }
+
+    allStudents.sort((a, b) => b.overallAverage - a.overallAverage);
+    allStudents.forEach((s, i) => (s.rank = i + 1));
+
+    return {
+      academicYear, term,
+      classIds,
+      students: allStudents,
+      totalStudents: allStudents.length,
+    };
+  }
+
   async getPerformanceStats(organizationId: string, branchId: string) {
     const statsFilter: any = { organizationId, branchId, isDeleted: false };
     const totalRecords = await this.performanceModel.countDocuments(statsFilter).exec();

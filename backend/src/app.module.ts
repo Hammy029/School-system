@@ -11,6 +11,10 @@ import { SubjectsModule } from './subjects/subjects.module';
 import { StudentsModule } from './students/students.module';
 import { GradingModule } from './grading/grading.module';
 import { PerformanceModule } from './performance/performance.module';
+import { StaffModule } from './staff/staff.module';
+import { TimetableModule } from './timetable/timetable.module';
+import { PaymentsModule } from './payments/payments.module';
+import { ApprovalsModule } from './approvals/approvals.module';
 
 @Module({
   imports: [
@@ -30,6 +34,10 @@ import { PerformanceModule } from './performance/performance.module';
     StudentsModule,
     GradingModule,
     PerformanceModule,
+    StaffModule,
+    TimetableModule,
+    PaymentsModule,
+    ApprovalsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

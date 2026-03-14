@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SubjectService } from '../../shared/services/subject.service';
 import { ClassService } from '../../shared/services/class.service';
+import { StaffService } from '../../shared/services/staff.service';
 import { ThemeService } from '../../shared/services/theme.service';
 
 @Component({
@@ -16,6 +17,7 @@ export class SubjectsComponent implements OnInit {
   darkMode = false;
   subjects: any[] = [];
   classes: any[] = [];
+  teachers: any[] = [];
   loading = false;
   showModal = false;
   editingId: string | null = null;
@@ -28,12 +30,14 @@ export class SubjectsComponent implements OnInit {
   constructor(
     private subjectService: SubjectService,
     private classService: ClassService,
+    private staffService: StaffService,
     private themeService: ThemeService,
   ) {}
 
   ngOnInit() {
     this.themeService.darkMode$.subscribe((d: boolean) => (this.darkMode = d));
     this.classService.getAll().subscribe({ next: (c: any) => (this.classes = c) });
+    this.staffService.getTeachers().subscribe({ next: (t: any) => (this.teachers = t) });
     this.loadSubjects();
   }
 

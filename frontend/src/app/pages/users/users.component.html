@@ -1,0 +1,144 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-800'">Users Management</h2>
+    <button (click)="openModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+      + Add User
+    </button>
+  </div>
+
+  @if (success) {
+    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ success }}</div>
+  }
+  @if (error) {
+    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="mb-4 flex flex-wrap items-center gap-3">
+    <input [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search users..."
+      class="px-3 py-2 rounded-lg border text-sm outline-none w-64"
+      [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+    <select [(ngModel)]="filterRole" (ngModelChange)="applyFilters()"
+      class="px-3 py-2 rounded-lg border text-sm outline-none"
+      [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+      <option value="">All Roles</option>
+      @for (role of roles; track role) {
+        <option [value]="role">{{ role }}</option>
+      }
+    </select>
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()"
+      class="px-3 py-2 rounded-lg border text-sm outline-none"
+      [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+      <option value="">All Status</option>
+      <option value="approved">Approved</option>
+      <option value="pending">Pending</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+    @if (loading) {
+      <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Loading...</div>
+    } @else if (filteredUsers.length === 0) {
+      <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No users found.</div>
+    } @else {
+      <table class="w-full">
+        <thead>
+          <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+            <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Username</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Email</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Role</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Status</th>
+            <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers; track user._id) {
+            <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+              <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ user.username }}</td>
+              <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ user.email }}</td>
+              <td class="px-4 py-3 text-sm">
+                <span class="px-2 py-0.5 rounded text-xs font-medium capitalize"
+                  [class]="user.role === 'super_admin' ? 'bg-purple-100 text-purple-700' : user.role === 'admin' ? 'bg-blue-100 text-blue-700' : user.role === 'teacher' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'">
+                  {{ user.role }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-sm">
+                <span class="px-2 py-0.5 rounded text-xs font-medium" [class]="user.isApproved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'">
+                  {{ user.isApproved ? 'Approved' : 'Pending' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right space-x-2">
+                <button (click)="viewUser(user)" class="text-sm text-indigo-500 hover:text-indigo-400">View</button>
+                <button (click)="openModal(user)" class="text-sm text-blue-500 hover:text-blue-400">Edit</button>
+                @if (!user.isApproved) {
+                  <button (click)="confirmApprove(user)" class="text-sm text-green-500 hover:text-green-400">Approve</button>
+                  <button (click)="confirmReject(user)" class="text-sm text-orange-500 hover:text-orange-400">Reject</button>
+                }
+                <button (click)="confirmDelete(user)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Add/Edit Modal -->
+  @if (showModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div class="w-full max-w-md rounded-xl p-6" [class]="darkMode ? 'bg-slate-800' : 'bg-white'">
+        <h3 class="text-lg font-semibold mb-4" [class]="darkMode ? 'text-white' : 'text-gray-800'">
+          {{ editingId ? 'Edit User' : 'Add User' }}
+        </h3>
+        @if (error) {
+          <div class="mb-3 p-2 rounded bg-red-100 text-red-700 text-sm">{{ error }}</div>
+        }
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Username</label>
+            <input [(ngModel)]="form.username" placeholder="Full name"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Email</label>
+            <input [(ngModel)]="form.email" type="email" placeholder="email@example.com"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Phone</label>
+            <input [(ngModel)]="form.phone_no" placeholder="Phone number"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Role</label>
+            <select [(ngModel)]="form.role"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              @for (role of roles; track role) {
+                <option [value]="role">{{ role }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button (click)="closeModal()" class="px-4 py-2 text-sm font-medium rounded-lg"
+            [class]="darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'">Cancel</button>
+          <button (click)="save()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            {{ editingId ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- View Modal -->
+  <app-view-modal [visible]="showView" [darkMode]="darkMode" title="User Details" [fields]="viewFields" (close)="showView = false"></app-view-modal>
+
+  <!-- Confirm Dialog -->
+  <app-confirm-dialog [visible]="showConfirm" [darkMode]="darkMode" [title]="confirmTitle" [message]="confirmMessage" [type]="confirmType"
+    (confirmed)="confirmAction && confirmAction()" (cancelled)="showConfirm = false"></app-confirm-dialog>
+</div>

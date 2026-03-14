@@ -1,0 +1,260 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-800'">Timetable</h2>
+  </div>
+
+  @if (success) {
+    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ success }}</div>
+  }
+  @if (error) {
+    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div>
+  }
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 p-1 rounded-lg w-fit" [class]="darkMode ? 'bg-slate-800' : 'bg-gray-100'">
+    <button (click)="activeTab = 'view'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'view'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      View Timetables
+    </button>
+    <button (click)="activeTab = 'generate'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'generate'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Generate Timetable
+    </button>
+  </div>
+
+  <!-- View Tab -->
+  @if (activeTab === 'view') {
+    <!-- Filters -->
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <select [(ngModel)]="filterClassId" (ngModelChange)="loadTimetables()"
+        class="px-3 py-2 rounded-lg border text-sm outline-none"
+        [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+        <option value="">All Classes</option>
+        @for (cls of classes; track cls._id) {
+          <option [value]="cls._id">{{ cls.name }} {{ cls.section ? '(' + cls.section + ')' : '' }}</option>
+        }
+      </select>
+      <input [(ngModel)]="filterAcademicYear" (ngModelChange)="loadTimetables()" placeholder="Academic Year e.g. 2025"
+        class="px-3 py-2 rounded-lg border text-sm outline-none w-40"
+        [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+      <input [(ngModel)]="filterTerm" (ngModelChange)="loadTimetables()" placeholder="Term e.g. 1"
+        class="px-3 py-2 rounded-lg border text-sm outline-none w-32"
+        [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+    </div>
+
+    <!-- Timetable List -->
+    <div class="rounded-xl overflow-hidden mb-6" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (loading) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Loading...</div>
+      } @else if (timetables.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No timetables found. Use the Generate tab to create one.</div>
+      } @else {
+        <table class="w-full">
+          <thead>
+            <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Class</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Academic Year</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Term</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Slots</th>
+              <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tt of timetables; track tt._id) {
+              <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">
+                  {{ tt.classId?.name || '-' }} {{ tt.classId?.section ? '(' + tt.classId.section + ')' : '' }}
+                </td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ tt.academicYear }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">Term {{ tt.term }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ tt.slots?.length || 0 }} slots</td>
+                <td class="px-4 py-3 text-right">
+                  <button (click)="viewTimetable(tt)" class="text-sm text-blue-500 hover:text-blue-400 mr-3">View</button>
+                  <button (click)="confirmDelete(tt._id)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Timetable Grid Display -->
+    @if (displayTimetable) {
+      <div class="rounded-xl p-6 mb-6" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold" [class]="darkMode ? 'text-white' : 'text-gray-800'">
+            {{ displayTimetable.classId?.name }} {{ displayTimetable.classId?.section ? '(' + displayTimetable.classId.section + ')' : '' }}
+            &mdash; {{ displayTimetable.academicYear }} Term {{ displayTimetable.term }}
+          </h3>
+          <button (click)="displayTimetable = null" class="text-sm" [class]="darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-500 hover:text-gray-700'">Close</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr>
+                <th class="px-3 py-2 text-xs font-semibold uppercase border" [class]="darkMode ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-gray-50 text-gray-600 border-gray-200'">Time</th>
+                @for (day of displayDays; track day) {
+                  <th class="px-3 py-2 text-xs font-semibold uppercase border" [class]="darkMode ? 'bg-slate-700 text-slate-300 border-slate-600' : 'bg-gray-50 text-gray-600 border-gray-200'">{{ day }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (time of timeSlots; track time) {
+                <tr>
+                  <td class="px-3 py-2 text-xs font-medium border whitespace-nowrap" [class]="darkMode ? 'bg-slate-700/50 text-slate-300 border-slate-600' : 'bg-gray-50 text-gray-600 border-gray-200'">{{ time }}</td>
+                  @for (day of displayDays; track day) {
+                    <td class="px-2 py-2 border text-center" [class]="darkMode ? 'border-slate-600' : 'border-gray-200'">
+                      @if (getSlot(day, time); as slot) {
+                        <div class="text-xs">
+                          <p class="font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ slot.subjectId?.name || 'Subject' }}</p>
+                          <p [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">{{ slot.teacherId?.firstName || slot.teacherId?.username || '' }}</p>
+                          @if (slot.room) {
+                            <p class="text-blue-500">{{ slot.room }}</p>
+                          }
+                        </div>
+                      } @else {
+                        <span class="text-xs" [class]="darkMode ? 'text-slate-500' : 'text-gray-300'">&ndash;</span>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Generate Tab -->
+  @if (activeTab === 'generate') {
+    <div class="rounded-xl p-6" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      <h3 class="text-lg font-semibold mb-6" [class]="darkMode ? 'text-white' : 'text-gray-800'">Generate Timetable</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Class -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Class</label>
+          <select [(ngModel)]="generateForm.classId" (ngModelChange)="onGenerateClassChange()"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+            <option value="">-- Select Class --</option>
+            @for (cls of classes; track cls._id) {
+              <option [value]="cls._id">{{ cls.name }} {{ cls.section ? '(' + cls.section + ')' : '' }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Academic Year -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Academic Year</label>
+          <input [(ngModel)]="generateForm.academicYear" placeholder="e.g., 2025"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+        </div>
+
+        <!-- Term -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Term</label>
+          <input [(ngModel)]="generateForm.term" placeholder="e.g., 1"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+        </div>
+
+        <!-- Slot Duration -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Slot Duration (minutes)</label>
+          <input type="number" [(ngModel)]="generateForm.slotDuration"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+        </div>
+
+        <!-- Start / End Time -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Start Time</label>
+          <input type="time" [(ngModel)]="generateForm.startTime"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">End Time</label>
+          <input type="time" [(ngModel)]="generateForm.endTime"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+        </div>
+
+        <!-- Break Time / Duration -->
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Break Time</label>
+          <input type="time" [(ngModel)]="generateForm.breakTime"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Break Duration (minutes)</label>
+          <input type="number" [(ngModel)]="generateForm.breakDuration"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+        </div>
+      </div>
+
+      <!-- Days Selection -->
+      <div class="mt-6">
+        <label class="block text-sm font-medium mb-2" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Days</label>
+        <div class="flex flex-wrap gap-2">
+          @for (day of allDays; track day) {
+            <button (click)="toggleDay(day)" class="px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors"
+              [class]="isDaySelected(day)
+                ? 'bg-blue-600 text-white border-blue-600'
+                : (darkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50')">
+              {{ day }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Subject Selection -->
+      <div class="mt-6">
+        <label class="block text-sm font-medium mb-2" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Select Subjects</label>
+        @if (availableSubjects.length === 0) {
+          <p class="text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">
+            {{ generateForm.classId ? 'No subjects found for this class.' : 'Select a class first to see available subjects.' }}
+          </p>
+        } @else {
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            @for (subj of availableSubjects; track subj._id) {
+              <button (click)="toggleSubject(subj._id)" class="px-3 py-2 text-sm rounded-lg border text-left transition-colors"
+                [class]="isSubjectSelected(subj._id)
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : (darkMode ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50')">
+                <span class="font-medium">{{ subj.name }}</span>
+                <span class="block text-xs opacity-75">{{ subj.code }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button (click)="generate()" class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          Generate Timetable
+        </button>
+      </div>
+    </div>
+  }
+
+  <app-confirm-dialog
+    [visible]="showConfirmDialog"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [type]="confirmType"
+    [darkMode]="darkMode"
+    (confirmed)="onConfirmed()"
+    (cancelled)="onCancelled()">
+  </app-confirm-dialog>
+</div>

@@ -1,0 +1,261 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-800'">Approvals</h2>
+  </div>
+
+  @if (success) {
+    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ success }}</div>
+  }
+  @if (error) {
+    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div>
+  }
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 p-1 rounded-lg w-fit" [class]="darkMode ? 'bg-slate-800' : 'bg-gray-100'">
+    <button (click)="activeTab = 'pending'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors relative"
+      [class]="activeTab === 'pending'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Pending
+      @if (pendingApprovals.length > 0) {
+        <span class="ml-1.5 px-1.5 py-0.5 text-xs rounded-full bg-red-500 text-white">{{ pendingApprovals.length }}</span>
+      }
+    </button>
+    <button (click)="activeTab = 'all'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'all'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      All Requests
+    </button>
+    <button (click)="activeTab = 'submit'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'submit'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Submit Request
+    </button>
+  </div>
+
+  <!-- PENDING TAB -->
+  @if (activeTab === 'pending') {
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (pendingApprovals.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No pending approvals for your role.</div>
+      } @else {
+        <table class="w-full">
+          <thead>
+            <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Title</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Type</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Submitted By</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Step</th>
+              <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of pendingApprovals; track a._id) {
+              <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ a.title }}</td>
+                <td class="px-4 py-3 text-sm capitalize" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ a.type }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ a.submittedBy?.username || '-' }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ a.currentStep + 1 }}/{{ a.steps?.length }}</td>
+                <td class="px-4 py-3 text-right">
+                  <button (click)="viewApproval(a)" class="text-sm text-blue-500 hover:text-blue-400 mr-2">View</button>
+                  <button (click)="openProcessModal(a)" class="text-sm text-green-500 hover:text-green-400">Process</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- ALL TAB -->
+  @if (activeTab === 'all') {
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (loading) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Loading...</div>
+      } @else if (approvals.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No approval requests found.</div>
+      } @else {
+        <table class="w-full">
+          <thead>
+            <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Title</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Type</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Submitted By</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Status</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Progress</th>
+              <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of approvals; track a._id) {
+              <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ a.title }}</td>
+                <td class="px-4 py-3 text-sm capitalize" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ a.type }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ a.submittedBy?.username || '-' }}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-0.5 text-xs font-medium rounded-full capitalize" [class]="getStatusClass(a.status)">{{ a.status }}</span>
+                </td>
+                <td class="px-4 py-3">
+                  <!-- Step indicators -->
+                  <div class="flex items-center gap-1">
+                    @for (step of a.steps; track $index; let i = $index) {
+                      <div class="flex items-center gap-1">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium border"
+                          [class]="{
+                            'bg-green-100 border-green-500 text-green-700': step.status === 'approved',
+                            'bg-red-100 border-red-500 text-red-700': step.status === 'rejected',
+                            'bg-blue-100 border-blue-500 text-blue-700': i === a.currentStep && a.status !== 'rejected' && a.status !== 'approved',
+                            'bg-gray-100 border-gray-300 text-gray-500': step.status === 'pending' && i !== a.currentStep
+                          }">
+                          {{ i + 1 }}
+                        </div>
+                        @if (i < a.steps.length - 1) {
+                          <div class="w-4 h-0.5" [class]="step.status === 'approved' ? 'bg-green-400' : 'bg-gray-300'"></div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <button (click)="viewApproval(a)" class="text-sm text-blue-500 hover:text-blue-400 mr-2">View</button>
+                  <button (click)="confirmDelete(a._id)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- SUBMIT TAB -->
+  @if (activeTab === 'submit') {
+    <div class="rounded-xl p-6" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      <h3 class="text-lg font-semibold mb-6" [class]="darkMode ? 'text-white' : 'text-gray-800'">Submit Approval Request</h3>
+
+      <div class="space-y-4 max-w-2xl">
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Type</label>
+          <select [(ngModel)]="submitForm.type"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none capitalize"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+            @for (t of approvalTypes; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Title</label>
+          <input [(ngModel)]="submitForm.title" placeholder="e.g., Term 1 Mathematics Results - Form 1A"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Description</label>
+          <textarea [(ngModel)]="submitForm.description" rows="3" placeholder="Describe the request..."
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'"></textarea>
+        </div>
+
+        <!-- Approval Steps -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-sm font-medium" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Approval Steps</label>
+            <button (click)="addStep()" class="text-sm text-blue-500 hover:text-blue-400">+ Add Step</button>
+          </div>
+          <div class="space-y-2">
+            @for (step of submitForm.steps; track $index; let i = $index) {
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-medium w-16" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Step {{ i + 1 }}</span>
+                <select [(ngModel)]="step.role"
+                  class="flex-1 px-3 py-2 rounded-lg border text-sm outline-none capitalize"
+                  [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+                  @for (r of approvalRoles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+                @if (submitForm.steps.length > 1) {
+                  <button (click)="removeStep(i)" class="text-red-500 hover:text-red-400 text-sm">Remove</button>
+                }
+              </div>
+            }
+          </div>
+          <p class="mt-2 text-xs" [class]="darkMode ? 'text-slate-500' : 'text-gray-400'">
+            Each step requires approval from a user with the specified role before proceeding to the next step.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button (click)="submitApproval()" class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          Submit Request
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Process Modal -->
+  @if (showProcessModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div class="w-full max-w-md rounded-xl p-6" [class]="darkMode ? 'bg-slate-800' : 'bg-white'">
+        <h3 class="text-lg font-semibold mb-4" [class]="darkMode ? 'text-white' : 'text-gray-800'">Process Approval</h3>
+        <p class="text-sm mb-4" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">
+          <strong>{{ processItem?.title }}</strong> &mdash; Step {{ (processItem?.currentStep || 0) + 1 }} of {{ processItem?.steps?.length }}
+        </p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Action</label>
+            <div class="flex gap-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="action" value="approved" [(ngModel)]="processAction" class="text-green-600" />
+                <span class="text-sm font-medium text-green-600">Approve</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="action" value="rejected" [(ngModel)]="processAction" class="text-red-600" />
+                <span class="text-sm font-medium text-red-600">Reject</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Comment (optional)</label>
+            <textarea [(ngModel)]="processComment" rows="3" placeholder="Add a comment..."
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button (click)="showProcessModal = false" class="px-4 py-2 text-sm font-medium rounded-lg"
+            [class]="darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'">Cancel</button>
+          <button (click)="processApproval()" class="px-4 py-2 text-sm font-medium rounded-lg text-white"
+            [class]="processAction === 'approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'">
+            {{ processAction === 'approved' ? 'Approve' : 'Reject' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <app-view-modal
+    [visible]="showViewModal"
+    title="Approval Details"
+    [fields]="viewFields"
+    [darkMode]="darkMode"
+    size="md"
+    (close)="showViewModal = false">
+  </app-view-modal>
+
+  <app-confirm-dialog
+    [visible]="showConfirmDialog"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [type]="confirmType"
+    [darkMode]="darkMode"
+    (confirmed)="onConfirmed()"
+    (cancelled)="onCancelled()">
+  </app-confirm-dialog>
+</div>

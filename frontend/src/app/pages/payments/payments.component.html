@@ -1,0 +1,391 @@
+<div>
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-800'">Payments</h2>
+  </div>
+
+  @if (success) {
+    <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm">{{ success }}</div>
+  }
+  @if (error) {
+    <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm">{{ error }}</div>
+  }
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 p-1 rounded-lg w-fit" [class]="darkMode ? 'bg-slate-800' : 'bg-gray-100'">
+    <button (click)="activeTab = 'payments'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'payments'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Payment Records
+    </button>
+    <button (click)="activeTab = 'fees'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'fees'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Fee Structure
+    </button>
+    <button (click)="activeTab = 'balance'" class="px-4 py-2 text-sm font-medium rounded-md transition-colors"
+      [class]="activeTab === 'balance'
+        ? (darkMode ? 'bg-slate-700 text-white' : 'bg-white text-gray-900 shadow-sm')
+        : (darkMode ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')">
+      Check Balance
+    </button>
+  </div>
+
+  <!-- PAYMENTS TAB -->
+  @if (activeTab === 'payments') {
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <select [(ngModel)]="filterStudentId" (ngModelChange)="loadPayments()"
+          class="px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          <option value="">All Students</option>
+          @for (s of students; track s._id) {
+            <option [value]="s._id">{{ s.name }} ({{ s.admissionNumber }})</option>
+          }
+        </select>
+        <select [(ngModel)]="filterStatus" (ngModelChange)="loadPayments()"
+          class="px-3 py-2 rounded-lg border text-sm outline-none"
+          [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+          <option value="">All Statuses</option>
+          @for (st of paymentStatuses; track st) {
+            <option [value]="st">{{ st }}</option>
+          }
+        </select>
+      </div>
+      <button (click)="openModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        + Record Payment
+      </button>
+    </div>
+
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (loading) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Loading...</div>
+      } @else if (payments.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No payment records found.</div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Student</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Type</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Amount</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Paid</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Method</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Status</th>
+                <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of payments; track p._id) {
+                <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                  <td class="px-4 py-3 text-sm font-medium" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ getStudentName(p.studentId) }}</td>
+                  <td class="px-4 py-3 text-sm capitalize" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.feeType }}</td>
+                  <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.amount | number }}</td>
+                  <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.amountPaid | number }}</td>
+                  <td class="px-4 py-3 text-sm capitalize" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ p.paymentMethod }}</td>
+                  <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 text-xs font-medium rounded-full capitalize" [class]="getStatusClass(p.status)">{{ p.status }}</span>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <button (click)="viewPayment(p)" class="text-sm text-blue-500 hover:text-blue-400 mr-2">View</button>
+                    <button (click)="openModal(p)" class="text-sm text-blue-500 hover:text-blue-400 mr-2">Edit</button>
+                    <button (click)="confirmDeletePayment(p._id)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- FEE STRUCTURE TAB -->
+  @if (activeTab === 'fees') {
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Define fee structures for different classes and terms.</p>
+      <button (click)="openFeeModal()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        + Add Fee
+      </button>
+    </div>
+
+    <div class="rounded-xl overflow-hidden" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      @if (fees.length === 0) {
+        <div class="p-8 text-center" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">No fee structures defined.</div>
+      } @else {
+        <table class="w-full">
+          <thead>
+            <tr [class]="darkMode ? 'bg-slate-700/50 text-slate-300' : 'bg-gray-50 text-gray-600'">
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Fee Type</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Class</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Year</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Term</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Amount</th>
+              <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider">Description</th>
+              <th class="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of fees; track f._id) {
+              <tr class="border-t transition-colors" [class]="darkMode ? 'border-slate-700 hover:bg-slate-700/30' : 'border-gray-100 hover:bg-gray-50'">
+                <td class="px-4 py-3 text-sm font-medium capitalize" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ f.feeType }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ f.classId?.name || 'All' }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ f.academicYear }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ f.term }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ f.amount | number }}</td>
+                <td class="px-4 py-3 text-sm" [class]="darkMode ? 'text-slate-300' : 'text-gray-600'">{{ f.description || '-' }}</td>
+                <td class="px-4 py-3 text-right">
+                  <button (click)="openFeeModal(f)" class="text-sm text-blue-500 hover:text-blue-400 mr-3">Edit</button>
+                  <button (click)="confirmDeleteFee(f._id)" class="text-sm text-red-500 hover:text-red-400">Delete</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- BALANCE TAB -->
+  @if (activeTab === 'balance') {
+    <div class="rounded-xl p-6" [class]="darkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200 shadow-sm'">
+      <h3 class="text-lg font-semibold mb-4" [class]="darkMode ? 'text-white' : 'text-gray-800'">Check Student Balance</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Student</label>
+          <select [(ngModel)]="balanceStudentId"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+            <option value="">-- Select Student --</option>
+            @for (s of students; track s._id) {
+              <option [value]="s._id">{{ s.name }} ({{ s.admissionNumber }})</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Academic Year</label>
+          <input [(ngModel)]="balanceYear" placeholder="e.g., 2025"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Term</label>
+          <input [(ngModel)]="balanceTerm" placeholder="e.g., 1"
+            class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+            [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+        </div>
+      </div>
+      <button (click)="checkBalance()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Check Balance
+      </button>
+
+      @if (balanceResult) {
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-lg" [class]="darkMode ? 'bg-slate-700' : 'bg-gray-50'">
+            <p class="text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Total Fees</p>
+            <p class="text-2xl font-bold" [class]="darkMode ? 'text-white' : 'text-gray-900'">{{ balanceResult.totalFees | number }}</p>
+          </div>
+          <div class="p-4 rounded-lg" [class]="darkMode ? 'bg-slate-700' : 'bg-gray-50'">
+            <p class="text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Total Paid</p>
+            <p class="text-2xl font-bold text-green-500">{{ balanceResult.totalPaid | number }}</p>
+          </div>
+          <div class="p-4 rounded-lg" [class]="darkMode ? 'bg-slate-700' : 'bg-gray-50'">
+            <p class="text-sm" [class]="darkMode ? 'text-slate-400' : 'text-gray-500'">Balance Due</p>
+            <p class="text-2xl font-bold text-red-500">{{ balanceResult.balance | number }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Payment Modal -->
+  @if (showModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div class="w-full max-w-2xl rounded-xl p-6 max-h-[90vh] overflow-y-auto" [class]="darkMode ? 'bg-slate-800' : 'bg-white'">
+        <h3 class="text-lg font-semibold mb-4" [class]="darkMode ? 'text-white' : 'text-gray-800'">
+          {{ editingId ? 'Edit Payment' : 'Record Payment' }}
+        </h3>
+        @if (error) {
+          <div class="mb-3 p-2 rounded bg-red-100 text-red-700 text-sm">{{ error }}</div>
+        }
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Student</label>
+            <select [(ngModel)]="form.studentId"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              <option value="">-- Select Student --</option>
+              @for (s of students; track s._id) {
+                <option [value]="s._id">{{ s.name }} ({{ s.admissionNumber }})</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Fee Type</label>
+            <select [(ngModel)]="form.feeType"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none capitalize"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              @for (ft of feeTypes; track ft) {
+                <option [value]="ft">{{ ft }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Academic Year</label>
+            <input [(ngModel)]="form.academicYear" placeholder="e.g., 2025"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Term</label>
+            <input [(ngModel)]="form.term" placeholder="e.g., 1"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Amount</label>
+            <input type="number" [(ngModel)]="form.amount"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Amount Paid</label>
+            <input type="number" [(ngModel)]="form.amountPaid"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Payment Method</label>
+            <select [(ngModel)]="form.paymentMethod"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none capitalize"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              @for (pm of paymentMethods; track pm) {
+                <option [value]="pm">{{ pm }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Receipt Number</label>
+            <input [(ngModel)]="form.receiptNumber" placeholder="Receipt #"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Reference Number</label>
+            <input [(ngModel)]="form.referenceNumber" placeholder="Transaction ref"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Payment Date</label>
+            <input type="date" [(ngModel)]="form.paymentDate"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Notes</label>
+            <textarea [(ngModel)]="form.notes" rows="2" placeholder="Optional notes"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none resize-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button (click)="closeModal()" class="px-4 py-2 text-sm font-medium rounded-lg"
+            [class]="darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'">Cancel</button>
+          <button (click)="save()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            {{ editingId ? 'Update' : 'Record' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Fee Modal -->
+  @if (showFeeModal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div class="w-full max-w-md rounded-xl p-6" [class]="darkMode ? 'bg-slate-800' : 'bg-white'">
+        <h3 class="text-lg font-semibold mb-4" [class]="darkMode ? 'text-white' : 'text-gray-800'">
+          {{ editingFeeId ? 'Edit Fee Structure' : 'Add Fee Structure' }}
+        </h3>
+        @if (error) {
+          <div class="mb-3 p-2 rounded bg-red-100 text-red-700 text-sm">{{ error }}</div>
+        }
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Fee Type</label>
+            <select [(ngModel)]="feeForm.feeType"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none capitalize"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              @for (ft of feeTypes; track ft) {
+                <option [value]="ft">{{ ft }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Class (optional)</label>
+            <select [(ngModel)]="feeForm.classId"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'">
+              <option value="">All Classes</option>
+              @for (cls of classes; track cls._id) {
+                <option [value]="cls._id">{{ cls.name }} {{ cls.section ? '(' + cls.section + ')' : '' }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Academic Year</label>
+            <input [(ngModel)]="feeForm.academicYear" placeholder="e.g., 2025"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Term</label>
+            <input [(ngModel)]="feeForm.term" placeholder="e.g., 1"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Amount</label>
+            <input type="number" [(ngModel)]="feeForm.amount"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" [class]="darkMode ? 'text-slate-300' : 'text-gray-700'">Description</label>
+            <input [(ngModel)]="feeForm.description" placeholder="Brief description"
+              class="w-full px-3 py-2 rounded-lg border text-sm outline-none"
+              [class]="darkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button (click)="closeFeeModal()" class="px-4 py-2 text-sm font-medium rounded-lg"
+            [class]="darkMode ? 'text-slate-300 hover:bg-slate-700' : 'text-gray-600 hover:bg-gray-100'">Cancel</button>
+          <button (click)="saveFee()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+            {{ editingFeeId ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <app-view-modal
+    [visible]="showViewModal"
+    title="Payment Details"
+    [fields]="viewFields"
+    [darkMode]="darkMode"
+    size="lg"
+    (close)="showViewModal = false">
+  </app-view-modal>
+
+  <app-confirm-dialog
+    [visible]="showConfirmDialog"
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [type]="confirmType"
+    [darkMode]="darkMode"
+    (confirmed)="onConfirmed()"
+    (cancelled)="onCancelled()">
+  </app-confirm-dialog>
+</div>
